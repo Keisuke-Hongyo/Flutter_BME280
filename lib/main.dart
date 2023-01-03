@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:reactive_ble/bluetooth.dart';
@@ -291,7 +290,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       (data[9].toUnsigned(32) << 8) +
                       data[8].toUnsigned(32))
                       .toInt()) /100000;
-                  pressData = sprintf("%5.2f %", [press]);
+                  pressData = sprintf("%5.2f hPa", [press]);
                 }
                 return Padding(
                   padding: const EdgeInsets.all(4.0),
