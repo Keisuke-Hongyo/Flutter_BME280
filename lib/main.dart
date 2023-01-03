@@ -8,7 +8,7 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   //向き指定
   SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,//縦固定
+    DeviceOrientation.portraitUp, //縦固定
   ]);
   runApp(const MyApp());
 }
@@ -60,9 +60,9 @@ class _MyHomePageState extends State<MyHomePage> {
   // センサー値とLED制御変数
   int _ledState = 0x00;
   String swstate = "NaN";
-  String tmpData="NaN";
-  String humData="NaN";
-  String pressData="NaN";
+  String tmpData = "NaN";
+  String humData = "NaN";
+  String pressData = "NaN";
 
   final BleDevice ble = BleDevice(
       deviceName: 'tinygo ble peripheral',
@@ -72,47 +72,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   void initState() {
-    List<int> data;
-    List<double> bme280Data=[0.0,0.0,0.0];
     super.initState();
     ble.conectDevice();
-    // 100msごとに受信処理
-     Timer.periodic(
-      // 第一引数：繰り返す間隔の時間を設定
-      const Duration(milliseconds: 100),
-      // 第二引数：その間隔ごとに動作させたい処理を書く
-      (Timer timer) async{
-       data = await ble.rcvData();
-       bme280Data[0] = (((data[3].toUnsigned(32) << 24) +
-           (data[2].toUnsigned(32) << 16) +
-           (data[1].toUnsigned(32) << 8) +
-           data[0].toUnsigned(32))
-           .toInt()) /1000;
-
-       bme280Data[1] = (((data[7].toUnsigned(32) << 24) +
-           (data[6].toUnsigned(32) << 16) +
-           (data[5].toUnsigned(32) << 8) +
-           data[4].toUnsigned(32))
-           .toInt()) /100;
-
-       bme280Data[2] = (((data[11].toUnsigned(32) << 24) +
-           (data[10].toUnsigned(32) << 16) +
-           (data[9].toUnsigned(32) << 8) +
-           data[8].toUnsigned(32))
-           .toInt()) /100000;
-       // 値更新
-        setState(() {
-          tmpData = sprintf("%5.2f ℃",[bme280Data[0]]);
-          humData = sprintf("%5.2f %",[bme280Data[1]]);
-          pressData = sprintf("%7.2f hPa",[bme280Data[2]]);
-          if (data[12] == 0x00) {
-            swstate = "OFF";
-          } else {
-            swstate = "ON";
-          }
-        });
-      },
-    );
   }
 
   @override
@@ -132,7 +93,7 @@ class _MyHomePageState extends State<MyHomePage> {
           Padding(
             padding: const EdgeInsets.all(4.0),
             child: Card(
-                /*width: double.infinity,
+              /*width: double.infinity,
               height: 120,*/
                 color: Colors.grey[200],
                 child: Column(
@@ -166,7 +127,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: const Text(
                               'LED1',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 30),
+                              TextStyle(color: Colors.white, fontSize: 30),
                             ),
                           ),
                         ),
@@ -186,7 +147,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: const Text(
                               'LED2',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 30),
+                              TextStyle(color: Colors.white, fontSize: 30),
                             ),
                           ),
                         ),
@@ -206,7 +167,7 @@ class _MyHomePageState extends State<MyHomePage> {
                             child: const Text(
                               'LED3',
                               style:
-                                  TextStyle(color: Colors.white, fontSize: 30),
+                              TextStyle(color: Colors.white, fontSize: 30),
                             ),
                           ),
                         ),
@@ -215,135 +176,207 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 )),
           ),
-         /* センサー値表示部分 */
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Card(
-              color: Colors.grey[200],
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children:  const <Widget>[
-                      Padding(
-                      padding: EdgeInsets.all(2.0),
-                          child: Text('気温',
-                            style: TextStyle(color: Colors.red, fontSize: 22),
-                          ),
+          /* センサー値表示部分(Stream仕様) */
+          // 気温
+          StreamBuilder(
+              stream: ble.s.stream,
+              builder: (context, snapshot) {
+                double temp = 0.0;
+                if (snapshot.hasData) {
+                  var data = snapshot.data as List<int>;
+                  temp = (((data[3].toUnsigned(32) << 24) +
+                      (data[2].toUnsigned(32) << 16) +
+                      (data[1].toUnsigned(32) << 8) +
+                      data[0].toUnsigned(32))
+                      .toInt()) /
+                      1000;
+                  tmpData = sprintf("%5.2f ℃", [temp]);
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Card(
+                    color: Colors.grey[200],
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Text(
+                                '気温',
+                                style:
+                                TextStyle(color: Colors.red, fontSize: 22),
+                              ),
+                            ),
+                          ],
                         ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('$tmpData',
-                          style: Theme.of(context).textTheme.headline5,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Text(
+                                '$tmpData',
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Card(
-              color: Colors.grey[200],
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children:  const <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(2.0),
-                        child: Text('湿度',
-                          style: TextStyle(color: Colors.red, fontSize: 22),
+                );
+              }),
+          // 湿度
+          StreamBuilder(
+              stream: ble.s.stream,
+              builder: (context, snapshot) {
+                double hum = 0.0;
+                if (snapshot.hasData) {
+                  var data = snapshot.data as List<int>;
+                  hum = (((data[7].toUnsigned(32) << 24) +
+                      (data[6].toUnsigned(32) << 16) +
+                      (data[5].toUnsigned(32) << 8) +
+                      data[4].toUnsigned(32))
+                      .toInt()) /
+                      100;
+                  humData = sprintf("%5.2f %", [hum]);
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Card(
+                    color: Colors.grey[200],
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Text(
+                                '湿度',
+                                style:
+                                TextStyle(color: Colors.red, fontSize: 22),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('$humData',
-                          style: Theme.of(context).textTheme.headline5,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Text(
+                                '$humData',
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: Card(
-              color: Colors.grey[200],
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children:  const <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('気圧',
-                          style: TextStyle(color: Colors.red, fontSize: 22),
+                );
+              }),
+          // 気圧
+          StreamBuilder(
+              stream: ble.s.stream,
+              builder: (context, snapshot) {
+                double press= 0.0;
+                if (snapshot.hasData) {
+                  var data = snapshot.data as List<int>;
+                  press = (((data[11].toUnsigned(32) << 24) +
+                      (data[10].toUnsigned(32) << 16) +
+                      (data[9].toUnsigned(32) << 8) +
+                      data[8].toUnsigned(32))
+                      .toInt()) /100000;
+                  pressData = sprintf("%5.2f %", [press]);
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Card(
+                    color: Colors.grey[200],
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Text(
+                                '気圧',
+                                style:
+                                TextStyle(color: Colors.red, fontSize: 22),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('$pressData',
-                          style: Theme.of(context).textTheme.headline5,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Text(
+                                '$pressData',
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(2.0),
-            child: Card(
-              color: Colors.grey[200],
-              child: Column(
-                children: <Widget>[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children:  const <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('スイッチ',
-                          style: TextStyle(color: Colors.red, fontSize: 22),
+                );
+              }),
+          // スイッチ
+          StreamBuilder(
+              stream: ble.s.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  var data = snapshot.data as List<int>;
+                  if (data[12] == 0x00) {
+                    swstate = "OFF";
+                  } else {
+                    swstate = "ON";
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Card(
+                    color: Colors.grey[200],
+                    child: Column(
+                      children: <Widget>[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: const <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Text(
+                                'スイッチ',
+                                style:
+                                TextStyle(color: Colors.red, fontSize: 22),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: <Widget>[
-                      Padding(
-                        padding: EdgeInsets.all(4.0),
-                        child: Text('$swstate',
-                          style: Theme.of(context).textTheme.headline5,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Text(
+                                '$swstate',
+                                style: Theme.of(context).textTheme.headline5,
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
-          ),
+                );
+              }),
         ],
       ),
     );
