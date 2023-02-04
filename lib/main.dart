@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:reactive_ble/bluetooth.dart';
 import 'package:sprintf/sprintf.dart';
+import 'package:syncfusion_flutter_gauges/gauges.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -86,298 +87,314 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Column(
-        children: <Widget>[
-          // LED Control
-          Padding(
-            padding: const EdgeInsets.all(4.0),
-            child: Card(
-              /*width: double.infinity,
+      body: Center(
+      child: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            // LED Control
+            Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Card(
+                /*width: double.infinity,
               height: 120,*/
-                color: Colors.grey[200],
-                child: Column(
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const <Widget>[
-                        Text(
-                          'LED Control',
-                          style: TextStyle(color: Colors.red, fontSize: 30),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      // 中央寄せ
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if ((_ledState & 0x01) == 0x00) {
-                                  _ledState |= 0x01;
-                                } else {
-                                  _ledState &= 0xfe;
-                                }
-                                ble.wData([_ledState]);
-                              });
-                            },
-                            child: const Text(
-                              'LED1',
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 30),
+                  color: Colors.grey[200],
+                  child: Column(
+                    children: <Widget>[
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const <Widget>[
+                          Text(
+                            'LED Control',
+                            style: TextStyle(color: Colors.red, fontSize: 30),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        // 中央寄せ
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          //LED1
+                          Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  if ((_ledState & 0x01) == 0x00) {
+                                    _ledState |= 0x01;
+                                  } else {
+                                    _ledState &= 0xfe;
+                                  }
+                                  ble.wData([_ledState]);
+                                });
+                              },
+                              child: const Text(
+                                'LED1',
+                                style:
+                                TextStyle(color: Colors.white, fontSize: 30),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if ((_ledState & 0x02) == 0x00) {
-                                  _ledState |= 0x02;
-                                } else {
-                                  _ledState &= 0xfd;
-                                }
-                                ble.wData([_ledState]);
-                              });
-                            },
-                            child: const Text(
-                              'LED2',
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 30),
+                          //LED2
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  if ((_ledState & 0x02) == 0x00) {
+                                    _ledState |= 0x02;
+                                  } else {
+                                    _ledState &= 0xfd;
+                                  }
+                                  ble.wData([_ledState]);
+                                });
+                              },
+                              child: const Text(
+                                'LED2',
+                                style:
+                                TextStyle(color: Colors.white, fontSize: 30),
+                              ),
                             ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: ElevatedButton(
-                            onPressed: () {
-                              setState(() {
-                                if ((_ledState & 0x04) == 0x00) {
-                                  _ledState |= 0x04;
-                                } else {
-                                  _ledState &= 0xfb;
-                                }
-                                ble.wData([_ledState]);
-                              });
-                            },
-                            child: const Text(
-                              'LED3',
-                              style:
-                              TextStyle(color: Colors.white, fontSize: 30),
+                          //LED3
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  if ((_ledState & 0x04) == 0x00) {
+                                    _ledState |= 0x04;
+                                  } else {
+                                    _ledState &= 0xfb;
+                                  }
+                                  ble.wData([_ledState]);
+                                });
+                              },
+                              child: const Text(
+                                'LED3',
+                                style:
+                                TextStyle(color: Colors.white, fontSize: 30),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                )),
-          ),
-          /* センサー値表示部分(Stream仕様) */
-          // 気温
-          StreamBuilder(
-              stream: ble.s.stream,
-              builder: (context, snapshot) {
-                double temp = 0.0;
-                if (snapshot.hasData) {
-                  var data = snapshot.data as List<int>;
-                  temp = (((data[3].toUnsigned(32) << 24) +
-                      (data[2].toUnsigned(32) << 16) +
-                      (data[1].toUnsigned(32) << 8) +
-                      data[0].toUnsigned(32))
-                      .toInt()) /
-                      1000;
-                  tmpData = sprintf("%5.2f ℃", [temp]);
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    color: Colors.grey[200],
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: const <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                '気温',
-                                style:
-                                TextStyle(color: Colors.red, fontSize: 22),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text(
-                                '$tmpData',
-                                style: Theme.of(context).textTheme.headline5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-          // 湿度
-          StreamBuilder(
-              stream: ble.s.stream,
-              builder: (context, snapshot) {
-                double hum = 0.0;
-                if (snapshot.hasData) {
-                  var data = snapshot.data as List<int>;
-                  hum = (((data[7].toUnsigned(32) << 24) +
-                      (data[6].toUnsigned(32) << 16) +
-                      (data[5].toUnsigned(32) << 8) +
-                      data[4].toUnsigned(32))
-                      .toInt()) /
-                      100;
-                  humData = sprintf("%5.2f %", [hum]);
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    color: Colors.grey[200],
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: const <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                '湿度',
-                                style:
-                                TextStyle(color: Colors.red, fontSize: 22),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text(
-                                '$humData',
-                                style: Theme.of(context).textTheme.headline5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-          // 気圧
-          StreamBuilder(
-              stream: ble.s.stream,
-              builder: (context, snapshot) {
-                double press= 0.0;
-                if (snapshot.hasData) {
-                  var data = snapshot.data as List<int>;
-                  press = (((data[11].toUnsigned(32) << 24) +
-                      (data[10].toUnsigned(32) << 16) +
-                      (data[9].toUnsigned(32) << 8) +
-                      data[8].toUnsigned(32))
-                      .toInt()) /100000;
-                  pressData = sprintf("%5.2f hPa", [press]);
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    color: Colors.grey[200],
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: const <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                '気圧',
-                                style:
-                                TextStyle(color: Colors.red, fontSize: 22),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text(
-                                '$pressData',
-                                style: Theme.of(context).textTheme.headline5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-          // スイッチ
-          StreamBuilder(
-              stream: ble.s.stream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var data = snapshot.data as List<int>;
-                  if (data[12] == 0x00) {
-                    swstate = "OFF";
-                  } else {
-                    swstate = "ON";
+                        ],
+                      ),
+                    ],
+                  )),
+            ),
+            // スイッチ
+            StreamBuilder(
+                stream: ble.s.stream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasData) {
+                    var data = snapshot.data as List<int>;
+                    if (data[12] == 0x00) {
+                      swstate = "OFF";
+                    } else {
+                      swstate = "ON";
+                    }
                   }
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    color: Colors.grey[200],
-                    child: Column(
-                      children: <Widget>[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: const <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                'スイッチ',
-                                style:
-                                TextStyle(color: Colors.red, fontSize: 22),
+                  return Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Card(
+                      color: Colors.grey[200],
+                      child: Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: const <Widget>[
+                              Padding(
+                                padding: EdgeInsets.all(2.0),
+                                child: Text(
+                                  'スイッチ',
+                                  style:
+                                  TextStyle(color: Colors.red, fontSize: 22),
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text(
-                                '$swstate',
-                                style: Theme.of(context).textTheme.headline5,
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: <Widget>[
+                              Padding(
+                                padding: EdgeInsets.all(4.0),
+                                child: Text(
+                                  '$swstate',
+                                  style: Theme.of(context).textTheme.headline5,
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              }),
-        ],
-      ),
+                  );
+                }),
+            /* センサー値表示部分(Stream仕様) */
+            // 気温
+            StreamBuilder(
+                stream: ble.s.stream,
+                builder: (context, snapshot) {
+                  double temp = 0.0;
+                  if (snapshot.hasData) {
+                    var data = snapshot.data as List<int>;
+                    temp = (((data[3].toUnsigned(32) << 24) +
+                        (data[2].toUnsigned(32) << 16) +
+                        (data[1].toUnsigned(32) << 8) +
+                        data[0].toUnsigned(32))
+                        .toInt()) /
+                        1000;
+                    tmpData = sprintf("%5.2f ℃", [temp]);
+                  }
+                  return SfRadialGauge(
+                      title: const GaugeTitle(
+                          text: '温度',
+                          textStyle: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold)),
+                      axes: <RadialAxis>[
+                        RadialAxis(minimum: 0, maximum: 60, ranges: <GaugeRange>[
+                          GaugeRange(
+                              startValue: 0,
+                              endValue: 10,
+                              color: Colors.blue,
+                              startWidth: 5,
+                              endWidth: 5),
+                          GaugeRange(
+                              startValue: 10,
+                              endValue: 30,
+                              color: Colors.green,
+                              startWidth: 5,
+                              endWidth: 5),
+                          GaugeRange(
+                              startValue: 30,
+                              endValue: 60,
+                              color: Colors.red,
+                              startWidth: 5,
+                              endWidth: 5)
+                        ], pointers: <GaugePointer>[
+                          NeedlePointer(value: temp)
+                        ], annotations: <GaugeAnnotation>[
+                          GaugeAnnotation(
+                              widget: Text(tmpData,
+                                  style: const TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold)),
+                              angle: 90,
+                              positionFactor: 0.5)
+                        ])
+                      ]);
+                }),
+            // 湿度
+            StreamBuilder(
+                stream: ble.s.stream,
+                builder: (context, snapshot) {
+                  double hum = 0.0;
+                  if (snapshot.hasData) {
+                    var data = snapshot.data as List<int>;
+                    hum = (((data[7].toUnsigned(32) << 24) +
+                        (data[6].toUnsigned(32) << 16) +
+                        (data[5].toUnsigned(32) << 8) +
+                        data[4].toUnsigned(32))
+                        .toInt()) /
+                        100;
+                    humData = sprintf("%5.2f %", [hum]);
+                  }
+                  return SfRadialGauge(
+                      title: const GaugeTitle(
+                          text: '湿度',
+                          textStyle: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold)),
+                      axes: <RadialAxis>[
+                        RadialAxis(minimum: 0, maximum: 100, ranges: <GaugeRange>[
+                          GaugeRange(
+                              startValue: 0,
+                              endValue: 20,
+                              color: Colors.green,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 20,
+                              endValue: 60,
+                              color: Colors.orange,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 60,
+                              endValue: 100,
+                              color: Colors.red,
+                              startWidth: 10,
+                              endWidth: 10)
+                        ], pointers: <GaugePointer>[
+                          NeedlePointer(value: hum)
+                        ], annotations: <GaugeAnnotation>[
+                          GaugeAnnotation(
+                              widget: Container(
+                                  child: Text(humData,
+                                      style: const TextStyle(
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.bold))),
+                              angle: 90,
+                              positionFactor: 0.5)
+                        ])
+                      ]);
+
+                }),
+            // 気圧
+            StreamBuilder(
+                stream: ble.s.stream,
+                builder: (context, snapshot) {
+                  double press = 0.0;
+                  if (snapshot.hasData) {
+                    var data = snapshot.data as List<int>;
+                    press = (((data[11].toUnsigned(32) << 24) +
+                        (data[10].toUnsigned(32) << 16) +
+                        (data[9].toUnsigned(32) << 8) +
+                        data[8].toUnsigned(32))
+                        .toInt()) /
+                        100000;
+                    pressData = sprintf("%5.2f hPa", [press]);
+                  }
+                  return SfRadialGauge(
+                      title: const GaugeTitle(
+                          text: '気圧',
+                          textStyle: TextStyle(
+                              fontSize: 20.0, fontWeight: FontWeight.bold)),
+                      axes: <RadialAxis>[
+                        RadialAxis(minimum: 900, maximum: 1200, ranges: <GaugeRange>[
+                          GaugeRange(
+                              startValue: 900,
+                              endValue: 1000,
+                              color: Colors.blue,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 1000,
+                              endValue: 1100,
+                              color: Colors.green,
+                              startWidth: 10,
+                              endWidth: 10),
+                          GaugeRange(
+                              startValue: 1100,
+                              endValue: 1200,
+                              color: Colors.red,
+                              startWidth: 10,
+                              endWidth: 10)
+                        ], pointers: <GaugePointer>[
+                          NeedlePointer(value: press)
+                        ], annotations: <GaugeAnnotation>[
+                          GaugeAnnotation(
+                              widget: Text(pressData,
+                                  style: const TextStyle(
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.bold)),
+                              angle: 90,
+                              positionFactor: 0.5)
+                        ])
+                      ]);
+                }),
+          ],
+        ),
+      )
+      )
     );
   }
 }
