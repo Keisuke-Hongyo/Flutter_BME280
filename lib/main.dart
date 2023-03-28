@@ -180,54 +180,6 @@ class _MyHomePageState extends State<MyHomePage> {
                   ],
                 )),
           ),
-          // スイッチ
-          StreamBuilder(
-              stream: ble.s.stream,
-              builder: (context, snapshot) {
-                if (snapshot.hasData) {
-                  var data = snapshot.data as List<int>;
-                  if (data[12] == 0x00) {
-                    swstate = "OFF";
-                  } else {
-                    swstate = "ON";
-                  }
-                }
-                return Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Card(
-                    color: Colors.grey[200],
-                    child: Column(
-                      children: <Widget>[
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Text(
-                                'スイッチ',
-                                style:
-                                TextStyle(color: Colors.red, fontSize: 22),
-                              ),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: <Widget>[
-                            Padding(
-                              padding: EdgeInsets.all(4.0),
-                              child: Text(
-                                '$swstate',
-                                style: Theme.of(context).textTheme.headline5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
           /* センサー値表示部分(Stream仕様) */
           SizedBox(
             height: 300,
@@ -398,6 +350,54 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             ),
           ),
+          // スイッチ
+          StreamBuilder(
+              stream: ble.s.stream,
+              builder: (context, snapshot) {
+                if (snapshot.hasData) {
+                  var data = snapshot.data as List<int>;
+                  if (data[12] == 0x00) {
+                    swstate = "OFF";
+                  } else {
+                    swstate = "ON";
+                  }
+                }
+                return Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Card(
+                    color: Colors.grey[200],
+                    child: Column(
+                      children: <Widget>[
+                        const Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(2.0),
+                              child: Text(
+                                'スイッチ',
+                                style:
+                                TextStyle(color: Colors.red, fontSize: 22),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: <Widget>[
+                            Padding(
+                              padding: EdgeInsets.all(4.0),
+                              child: Text(
+                                swstate,
+                                style: Theme.of(context).textTheme.headlineSmall,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
         ],
       )
     );
